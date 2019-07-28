@@ -1,5 +1,5 @@
 {
-  "name": "todolist",
+  "name": "@alec/simple-todolist-webapp",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -36,6 +36,7 @@
     ]
   },
   "devDependencies": {
-    "@types/react": "^16.8.23"
+    "@types/react": "^16.8.23",
+    "strict-event-emitter-types": "^2.0.0"
   }
 }
