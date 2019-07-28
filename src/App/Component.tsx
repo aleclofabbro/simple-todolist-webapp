@@ -1,16 +1,13 @@
 import React, { useContext, useState, useEffect, createContext } from 'react';
 import { Route, Link } from "react-router-dom";
 import { __RouterContext, Switch } from 'react-router';
-import { TodoListIdRegExp } from './types/Data';
-import { pageTitleByRouterCtx } from './helper/routes';
-import { StrictEmitter, makeEmitter } from './helper/StrictEmitter';
-
-export interface Events {
-  changeDocumentTitle: string
-}
+import { TodoListIdRegExp } from '../types/Data';
+import { pageTitleByRouterCtx } from '../helper/routes';
+import { makeEmitter } from '../helper/StrictEmitter';
+import { Emitter, Events } from './Events';
 
 export interface Ctx {
-  emitter: StrictEmitter<Events>
+  emitter: Emitter
 }
 
 export const AppCtx = createContext<Ctx>({
