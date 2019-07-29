@@ -1,4 +1,4 @@
-import { TodoListIdRegExp } from '../types/Data';
+import { TodoListIdRegExp } from '@alec/simple-todolist-common/dist/types/Data';
 import { RouteComponentProps } from 'react-router';
 
 export function pageTitleByRouterCtx(routerCtx: RouteComponentProps) {

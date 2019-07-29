@@ -1,10 +1,10 @@
 import React, { useContext, useState, useEffect, createContext } from 'react';
 import { Route, Link } from "react-router-dom";
 import { __RouterContext, Switch } from 'react-router';
-import { TodoListIdRegExp } from '../types/Data';
 import { pageTitleByRouterCtx } from '../helper/routes';
 import { makeEmitter } from '../helper/StrictEmitter';
 import { Emitter, Events } from './Events';
+import { TodoListIdRegExp } from '@alec/simple-todolist-common/dist/types/Data';
 
 export interface Ctx {
   emitter: Emitter
