@@ -1,0 +1,12 @@
+import { TodoListPageFetchApi } from '@alec/simple-todolist-common/dist/api/TodoListPageFetchApi';
+
+export interface FetchHandler<T> {
+  cancel: Function
+  response: Promise<T>
+}
+
+type ApiOf<F extends Function> = (...args: F extends (...args: infer A) => any ? A : never) => FetchHandler<ReturnType<F>>
+
+export interface TodoListPageFetchIO {
+  fetchTodoList: ApiOf<TodoListPageFetchApi['fetchTodoList']>
+}

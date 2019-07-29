@@ -1,0 +1,7 @@
+.del-todo {
+  display: none;
+}
+
+.todo:hover .del-todo {
+  display: block;
+}
