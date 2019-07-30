@@ -1,45 +1,48 @@
-import binder_doc from './binders/document'
-import binder_TodoListPageFetch from './binders/TodoListPageFetch'
-import io_TodoListPageFetch from './io/axios/TodoListPageFetch'
-import React, { useContext, useEffect } from 'react';
+// import TodoListIO from './io/axios/AxiosTodoListIO'
+import MemTodoListIO from './io/inmemory/MemTodoListIO'
+import React, { useContext, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import App, { Events as AppEvents } from './App/AppComponent';
+import App from './AppComponent';
 import * as serviceWorker from './serviceWorker';
 import { __RouterContext } from 'react-router';
 import Axios from 'axios'
 import { BrowserRouter } from 'react-router-dom';
-import { Events as TodoListEvents, TodolistPageCtx } from './pages/TodoList/TodoListPage';
-import { makeEmitter } from '@alec/simple-todolist-common/dist/helper/StrictEmitter';
+// import { makeEmitter } from '@alec/simple-todolist-common/dist/helper/StrictEmitter';
 import { pageTitleByRouterCtx } from './helper/routes';
+import * as Ctxs from './ctx';
 
-export type GlobalEvents =
-  & AppEvents
-  & TodoListEvents
 
-  ;
 
 Axios.get('/config.json').then(
-  resp => {
-    const baseURL = resp.data.api.baseUrl;
-    const emitter = makeEmitter<GlobalEvents>()
+  _resp => {
+    // const emitter = makeEmitter<GlobalEvents>()
 
+    /* 
+    const baseURL = resp.data.api.baseUrl;
     const axios = Axios.create({ baseURL })
-    binder_doc(emitter, window)
-    binder_TodoListPageFetch(emitter, io_TodoListPageFetch(axios))
+    const axiosTodolistsIO = TodoListIO(axios)
+    */
+
+    const memTodolistsIO = MemTodoListIO()
 
     const Main = () => {
       const routerCtx = useContext(__RouterContext)
-
+      const [title, setTitle] = useState('')
       useEffect(() => {
         const docTitle = pageTitleByRouterCtx(routerCtx)
-        emitter.emit('changeDocumentTitle', docTitle)
+        window.document.title = docTitle
+        setTitle(docTitle)
       }, [routerCtx])
+
       return (
-        <TodolistPageCtx.Provider value={{ emitter }}>
-          <App {...{ emitter }} />
-        </TodolistPageCtx.Provider>
+        <Ctxs.TodoListIOCtx.Provider value={memTodolistsIO}>
+          <Ctxs.AppCtx.Provider value={{ title }}>
+            <App />
+          </Ctxs.AppCtx.Provider>
+        </Ctxs.TodoListIOCtx.Provider>
       )
     }
+
     ReactDOM.render(<BrowserRouter><Main /></BrowserRouter>,
       document.getElementById('root')
     )

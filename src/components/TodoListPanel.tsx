@@ -1,15 +1,29 @@
 import React from 'react'
-import { TodoList } from '@alec/simple-todolist-common/dist/types/Data';
+import { TodoList, TodoRowId } from '../types/Data';
 import { TodoCard } from './TodoCard';
-import { } from '@alec/simple-todolist-common/dist/helper/StrictEmitter';
 
 
 
 export interface Props {
-  todoList: TodoList
+  todoList: TodoList,
+  addTodoRowToList: (row: string) => unknown
+  setDoneFlags: (todoIds: TodoRowId[], flag: boolean) => unknown
+  removeTodos: (todoIds: TodoRowId[]) => unknown
+
 }
 
-const TodoListPanel: React.FC<Props> = ({ todoList }) => {
+const TodoListPanel: React.FC<Props> = ({ addTodoRowToList, todoList, setDoneFlags, removeTodos }) => {
+
+  const allDone = () => setDoneFlags(todoList.todos.map(_ => _.id), true)
+  const delDone = () => removeTodos(todoList.todos.filter(_ => _.done).map(_ => _.id))
+
+  const addTodoHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      addTodoRowToList(e.currentTarget.value)
+      e.currentTarget.value = ''
+    }
+  }
+
   return (
     <>
       <div className="row">
@@ -18,7 +32,7 @@ const TodoListPanel: React.FC<Props> = ({ todoList }) => {
           <div className="row">
             <div className="col-12">
               <div className="input-group mb-3">
-                <input type="text" className="form-control" placeholder="add" />
+                <input type="text" className="form-control" placeholder="add" onKeyDown={addTodoHandler} />
               </div>
             </div>
           </div>
@@ -26,14 +40,18 @@ const TodoListPanel: React.FC<Props> = ({ todoList }) => {
 
           <div className="row">
             <div className="col-12 mb-5">
-              <button className="btn btn-success">mark all as done</button>
-              <button className="btn btn-warning">delete done</button>
+              <button onClick={allDone} className="btn btn-success">mark all as done</button>
+              <button onClick={delDone} className="btn btn-warning">delete done</button>
             </div>
           </div>
           {
             todoList.todos.map((todo, index) =>
               <div key={index} className="row">
-                <TodoCard todo={todo} />
+                <TodoCard key={todo.id} {...{
+                  todo,
+                  remove: () => removeTodos([todo.id]),
+                  toggleDone: () => setDoneFlags([todo.id], !todo.done),
+                }} />
               </div>
             )
           }

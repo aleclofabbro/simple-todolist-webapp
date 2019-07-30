@@ -1,4 +1,4 @@
-import { TodoListIdRegExp } from '@alec/simple-todolist-common/dist/types/Data';
+import { TodoListIdRegExp } from '../types/Data';
 import { RouteComponentProps } from 'react-router';
 
 export function pageTitleByRouterCtx(routerCtx: RouteComponentProps) {
@@ -11,5 +11,5 @@ export function pageTitleByRouterCtx(routerCtx: RouteComponentProps) {
 }
 const regexLocationPathTitle = {
   'Dashboard': /^\/dashboard$/,
-  'TodoList': new RegExp(`^\/todolist\/${TodoListIdRegExp.source}$`)
+  'TodoList': new RegExp(`^/todolist/${TodoListIdRegExp.source}$`)
 }
