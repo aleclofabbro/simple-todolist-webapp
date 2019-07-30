@@ -18,6 +18,7 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
 
 
   const [pageState, setPageState] = useState<PageState>({ fetching: true, error: false })
+
   useEffect(() => {
     const sub = todolistsIO.fetchTodoList(listId)
       .subscribe(list => {
@@ -26,7 +27,9 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
         setPageState({ fetching: false, error: true, msg: String(err) })
       })
     return () => sub.unsubscribe()
-  }, [listId, todolistsIO])
+  },
+    // eslint-disable-next-line 
+    [listId, todolistsIO])
 
   const [newTodoRow, setNewTodoRow] = useState<string | null>(null)
   useEffect(() => {
@@ -43,7 +46,9 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
       cleanup = () => sub.unsubscribe
     }
     return cleanup
-  }, [listId, todolistsIO, newTodoRow, !pageState.fetching && !pageState.error && !pageState.updating])
+  },
+    // eslint-disable-next-line 
+    [listId, todolistsIO, newTodoRow, !pageState.fetching && !pageState.error && !pageState.updating])
 
   const [removeTodos, setRemoveTodos] = useState<TodoRowId[]>([])
   useEffect(() => {
@@ -60,7 +65,9 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
       cleanup = () => sub.unsubscribe
     }
     return cleanup
-  }, [listId, todolistsIO, removeTodos.length, !pageState.fetching && !pageState.error && !pageState.updating])
+  },
+    // eslint-disable-next-line 
+    [listId, todolistsIO, removeTodos.length, !pageState.fetching && !pageState.error && !pageState.updating])
 
 
   const [todosFlagsToSet, setTodosFlagsToSet] = useState<{ rowIds: TodoRowId[], flag: boolean } | null>(null)
@@ -78,7 +85,9 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
       cleanup = () => sub.unsubscribe
     }
     return cleanup
-  }, [listId, todolistsIO, todosFlagsToSet, !pageState.fetching && !pageState.error && !pageState.updating])
+  },
+    // eslint-disable-next-line 
+    [listId, todolistsIO, todosFlagsToSet, !pageState.fetching && !pageState.error && !pageState.updating])
 
 
   return (

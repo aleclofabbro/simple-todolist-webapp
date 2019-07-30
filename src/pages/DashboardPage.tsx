@@ -39,7 +39,9 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
         setPageState({ fetching: false, error: true, msg: String(err) })
       })
     return () => sub.unsubscribe()
-  }, [])
+  },
+    // eslint-disable-next-line 
+    [todolistsIO])
 
   const [listIdToRemove, setListIdToRemove] = useState<TodoListId | null>(null)
   useEffect(() => {
@@ -58,7 +60,9 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
       cleanup = () => sub.unsubscribe
     }
     return cleanup
-  }, [listIdToRemove, todolistsIO, listIdToRemove, !pageState.fetching && !pageState.error && !pageState.updating])
+  },
+    // eslint-disable-next-line 
+    [listIdToRemove, todolistsIO, listIdToRemove, !pageState.fetching && !pageState.error && !pageState.updating])
 
 
   return (
