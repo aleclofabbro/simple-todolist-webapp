@@ -7,9 +7,9 @@ import { TodoListIOCtx } from '../ctx';
 import { Mask } from '../components/Mask';
 
 type PageState =
-  | { fetching: true, error: false }
-  | { fetching: false, error: true, msg: string }
-  | { fetching: false, error: false, updating: boolean, list: TodoList }
+  | { status: 1 }
+  | { status: 2, errorMsg: string }
+  | { status: 3, updating: boolean, list: TodoList }
 
 
 const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
@@ -17,14 +17,14 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
   const listId: TodoListId = match.params.id
 
 
-  const [pageState, setPageState] = useState<PageState>({ fetching: true, error: false })
+  const [pageState, setPageState] = useState<PageState>({ status: 1 })
 
   useEffect(() => {
     const sub = todolistsIO.fetchTodoList(listId)
       .subscribe(list => {
-        setPageState({ fetching: false, error: false, updating: false, list })
+        setPageState({ status: 3, updating: false, list })
       }, err => {
-        setPageState({ fetching: false, error: true, msg: String(err) })
+        setPageState({ status: 2, errorMsg: String(err) })
       })
     return () => sub.unsubscribe()
   },
@@ -33,61 +33,53 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
 
   const [newTodoRow, setNewTodoRow] = useState<string | null>(null)
   useEffect(() => {
-    let cleanup = () => { }
-    if (newTodoRow && !pageState.fetching && !pageState.error && !pageState.updating) {
-      setNewTodoRow(null)
-      setPageState({ fetching: false, error: false, updating: true, list: pageState.list })
+    if (pageState.status === 3 && !pageState.updating && newTodoRow) {
+
+      setPageState({ status: 3, updating: true, list: pageState.list })
       const sub = todolistsIO.addTodoRowToList(listId, newTodoRow)
-        .subscribe(list => {
-          setPageState({ fetching: false, error: false, updating: false, list })
-        }, err => {
-          setPageState({ fetching: false, error: true, msg: String(err) })
-        })
-      cleanup = () => sub.unsubscribe
+        .subscribe(list => setPageState({ status: 3, updating: false, list }),
+          err => setPageState({ status: 2, errorMsg: String(err) }),
+          () => setNewTodoRow(null)
+        )
+      return () => sub.unsubscribe()
     }
-    return cleanup
+    return
   },
     // eslint-disable-next-line 
-    [listId, todolistsIO, newTodoRow, !pageState.fetching && !pageState.error && !pageState.updating])
+    [listId, todolistsIO, newTodoRow])
 
   const [removeTodos, setRemoveTodos] = useState<TodoRowId[]>([])
   useEffect(() => {
-    let cleanup = () => { }
-    if (removeTodos.length && !pageState.fetching && !pageState.error && !pageState.updating) {
-      setRemoveTodos([])
-      setPageState({ fetching: false, error: false, updating: true, list: pageState.list })
+    if (pageState.status === 3 && !pageState.updating && removeTodos.length) {
+      setPageState({ status: 3, updating: true, list: pageState.list })
       const sub = todolistsIO.removeTodos(listId, removeTodos)
-        .subscribe(list => {
-          setPageState({ fetching: false, error: false, updating: false, list })
-        }, err => {
-          setPageState({ fetching: false, error: true, msg: String(err) })
-        })
-      cleanup = () => sub.unsubscribe
+        .subscribe(list => setPageState({ status: 3, updating: false, list }),
+          err => setPageState({ status: 2, errorMsg: String(err) }),
+          () => setRemoveTodos([])
+        )
+      return () => sub.unsubscribe()
     }
-    return cleanup
+    return
   },
     // eslint-disable-next-line 
-    [listId, todolistsIO, removeTodos.length, !pageState.fetching && !pageState.error && !pageState.updating])
+    [listId, todolistsIO, removeTodos])
 
 
   const [todosFlagsToSet, setTodosFlagsToSet] = useState<{ rowIds: TodoRowId[], flag: boolean } | null>(null)
   useEffect(() => {
-    let cleanup = () => { }
-    if (todosFlagsToSet && !pageState.fetching && !pageState.error && !pageState.updating) {
-      setTodosFlagsToSet(null)
-      setPageState({ fetching: false, error: false, updating: true, list: pageState.list })
+    if (pageState.status === 3 && !pageState.updating && todosFlagsToSet) {
+      setPageState({ status: 3, updating: true, list: pageState.list })
       const sub = todolistsIO.setDoneFlag(listId, todosFlagsToSet.rowIds, todosFlagsToSet.flag)
-        .subscribe(list => {
-          setPageState({ fetching: false, error: false, updating: false, list })
-        }, err => {
-          setPageState({ fetching: false, error: true, msg: String(err) })
-        })
-      cleanup = () => sub.unsubscribe
+        .subscribe(list => setPageState({ status: 3, updating: false, list }),
+          err => setPageState({ status: 2, errorMsg: String(err) }),
+          () => setTodosFlagsToSet(null)
+        )
+      return () => sub.unsubscribe()
     }
-    return cleanup
+    return
   },
     // eslint-disable-next-line 
-    [listId, todolistsIO, todosFlagsToSet, !pageState.fetching && !pageState.error && !pageState.updating])
+    [listId, todolistsIO, todosFlagsToSet])
 
 
   return (
@@ -95,11 +87,11 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
       <Link to="/dashboard">dashboard</Link>
 
       {
-        pageState.fetching
+        pageState.status === 1
           ? <h2>Wait, Fetching todoList#{listId}</h2>
-          : pageState.error
+          : pageState.status === 2
             ? <div>
-              <h1>Fetch Error: ${pageState.msg} </h1>
+              <h1>Fetch Error: ${pageState.errorMsg} </h1>
               <Link to="/dashboard">Back to Dashboard</Link>
             </div>
             : <div style={{ position: "relative" }}>

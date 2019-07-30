@@ -8,62 +8,74 @@ import { mergeMap } from 'rxjs/operators';
 import { Mask } from '../components/Mask';
 
 type PageState =
-  | { fetching: true, error: false }
-  | { fetching: false, error: true, msg: string }
-  | { fetching: false, error: false, updating: boolean, lists: TodoList[] }
+  | { status: 1 }
+  | { status: 2, errorMsg: string }
+  | { status: 3, updating: boolean, lists: TodoList[] }
 
 
 const DashboardPage: React.FC<RouteComponentProps> = (_) => {
   const todolistsIO = useContext(TodoListIOCtx)
 
   const [shouldRedirectId, setShouldRedirectId] = useState<TodoListId | null>(null)
-  const [pageState, setPageState] = useState<PageState>({ fetching: true, error: false })
+  const [pageState, setPageState] = useState<PageState>({ status: 1 })
 
-  const addHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      todolistsIO.addTodoList(e.currentTarget.value)
-        .subscribe(setShouldRedirectId,
-          err => {
-            alert(String(err))
-          })
-      e.currentTarget.value = ''
-    }
-  }
 
 
   useEffect(() => {
     const sub = todolistsIO.fetchTodoLists()
       .subscribe(lists => {
-        setPageState({ fetching: false, error: false, updating: false, lists })
+        setPageState({ status: 3, updating: false, lists })
       }, err => {
-        setPageState({ fetching: false, error: true, msg: String(err) })
+        setPageState({ status: 2, errorMsg: String(err) })
       })
     return () => sub.unsubscribe()
   },
     // eslint-disable-next-line 
     [todolistsIO])
 
+
+  const addHandler = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && e.currentTarget.value) {
+      setTodolistToAdd(e.currentTarget.value)
+      e.currentTarget.value = ''
+    }
+  }
+  const [todolistToAdd, setTodolistToAdd] = useState<string | null>(null)
+  useEffect(() => {
+    if (pageState.status === 3 && !pageState.updating && todolistToAdd) {
+      setPageState({ ...pageState, updating: true })
+      const sub = todolistsIO.addTodoList(todolistToAdd)
+        .subscribe(
+          newListId => setShouldRedirectId(newListId),
+          err => alert(String(err)),
+          () => setTodolistToAdd(null)
+        )
+      return () => sub.unsubscribe()
+    }
+    return
+  },
+    // eslint-disable-next-line 
+    [todolistToAdd, todolistsIO])
+
   const [listIdToRemove, setListIdToRemove] = useState<TodoListId | null>(null)
   useEffect(() => {
-    let cleanup = () => { }
-    if (listIdToRemove && !pageState.fetching && !pageState.error && !pageState.updating) {
-      setListIdToRemove(null)
-      setPageState({ fetching: false, error: false, updating: true, lists: pageState.lists })
+    if (pageState.status === 3 && !pageState.updating && listIdToRemove) {
+
+      setPageState({ ...pageState, updating: true })
       const sub = todolistsIO.removeList(listIdToRemove)
         .pipe(
           mergeMap(() => todolistsIO.fetchTodoLists())
-        ).subscribe(lists => {
-          setPageState({ fetching: false, error: false, updating: false, lists })
-        }, err => {
-          setPageState({ fetching: false, error: true, msg: String(err) })
-        })
-      cleanup = () => sub.unsubscribe
+        ).subscribe(
+          lists => setPageState({ ...pageState, updating: false, lists }),
+          err => setPageState({ status: 2, errorMsg: String(err) }),
+          () => setListIdToRemove(null)
+        )
+      return () => sub.unsubscribe()
     }
-    return cleanup
+    return
   },
     // eslint-disable-next-line 
-    [listIdToRemove, todolistsIO, listIdToRemove, !pageState.fetching && !pageState.error && !pageState.updating])
-
+    [listIdToRemove, todolistsIO])
 
   return (
     <>
@@ -71,12 +83,12 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
       <Link to="/">home</Link>
 
       {
-        pageState.fetching
+        pageState.status === 1
           ? <h2>Wait, Fetching todoLists</h2>
 
-          : pageState.error
+          : pageState.status === 2
             ? <div>
-              <h1>Fetch Error: ${pageState.msg} </h1>
+              <h1>Fetch Error: ${pageState.errorMsg} </h1>
             </div>
 
             : <div>

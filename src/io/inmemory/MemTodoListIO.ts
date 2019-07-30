@@ -1,7 +1,7 @@
 import { TodoListIO } from '../../types/TodoListIO';
 import { TodoList } from '../../types/Data';
 import { from, throwError, Observable } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { delay, tap } from 'rxjs/operators';
 
 
 const newId = () => Number(String(Math.random()).substr(2)).toString(36)
@@ -12,11 +12,11 @@ export default (cfg = {
 }): TodoListIO => {
   const ITEMID = 'TODOLISTS_DB'
 
-  const fromWithDelayAndMaybeError = <T>(data: T): Observable<T> => {
+  const obsFromValueWithDelayAndMaybeErrorAndSave = <T>(data: T): Observable<T> => {
     const shouldThrow = Math.random() < cfg.errPct
     const outObs = shouldThrow
       ? (throwError('some Error occoured') as Observable<T>)
-      : from([data])
+      : from([data]).pipe(tap(save))
 
     return outObs.pipe(
       delay(cfg.max * Math.random() + cfg.lag)
@@ -34,8 +34,7 @@ export default (cfg = {
         return throwError('404')
       } else {
         db[id] = { ...todolist, todos: [{ id: newId(), done: false, text }, ...todolist.todos] }
-        save()
-        return fromWithDelayAndMaybeError(db[id])
+        return obsFromValueWithDelayAndMaybeErrorAndSave(db[id])
       }
     },
 
@@ -46,8 +45,7 @@ export default (cfg = {
       } else {
         const todos = todolist.todos.map(todo => rowIds.includes(todo.id) ? { ...todo, done } : todo)
         db[listId] = { ...todolist, todos }
-        save()
-        return fromWithDelayAndMaybeError(db[listId])
+        return obsFromValueWithDelayAndMaybeErrorAndSave(db[listId])
       }
     },
 
@@ -58,8 +56,7 @@ export default (cfg = {
       } else {
         const todos = todolist.todos.filter(todo => !rowIds.includes(todo.id))
         db[listId] = { ...todolist, todos }
-        save()
-        return fromWithDelayAndMaybeError(db[listId])
+        return obsFromValueWithDelayAndMaybeErrorAndSave(db[listId])
       }
     },
 
@@ -69,14 +66,13 @@ export default (cfg = {
         return throwError('404')
       } else {
         delete db[listId]
-        save()
-        return fromWithDelayAndMaybeError(true)
+        return obsFromValueWithDelayAndMaybeErrorAndSave(true)
       }
     },
 
     fetchTodoList: id => {
       const todolist: TodoList | void = db[id]
-      return todolist ? fromWithDelayAndMaybeError(todolist) : throwError('404')
+      return todolist ? obsFromValueWithDelayAndMaybeErrorAndSave(todolist) : throwError('404')
     },
 
     addTodoList: (name) => {
@@ -86,8 +82,7 @@ export default (cfg = {
         name,
         todos: []
       }
-      save()
-      return fromWithDelayAndMaybeError(id)
+      return obsFromValueWithDelayAndMaybeErrorAndSave(id)
 
     },
 
@@ -97,7 +92,7 @@ export default (cfg = {
           (lists, key) => lists.concat(db[key]),
           [] as TodoList[])
 
-      return fromWithDelayAndMaybeError(lists)
+      return obsFromValueWithDelayAndMaybeErrorAndSave(lists)
     }
 
   }
