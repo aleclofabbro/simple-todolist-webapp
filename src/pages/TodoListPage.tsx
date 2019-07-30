@@ -15,11 +15,9 @@ type PageState =
 const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) => {
   const todolistsIO = useContext(TodoListIOCtx)
   const listId: TodoListId = match.params.id
-  const [pageState, setPageState] = useState<PageState>({ fetching: true, error: false })
-  const [newTodoRow, setNewTodoRow] = useState<string | null>(null)
-  const [removeTodos, setRemoveTodos] = useState<TodoRowId[]>([])
-  const [todosFlagsToSet, setTodosFlagsToSet] = useState<{ rowIds: TodoRowId[], flag: boolean } | null>(null)
 
+
+  const [pageState, setPageState] = useState<PageState>({ fetching: true, error: false })
   useEffect(() => {
     const sub = todolistsIO.fetchTodoList(listId)
       .subscribe(list => {
@@ -30,6 +28,7 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
     return () => sub.unsubscribe()
   }, [listId, todolistsIO])
 
+  const [newTodoRow, setNewTodoRow] = useState<string | null>(null)
   useEffect(() => {
     let cleanup = () => { }
     if (newTodoRow && !pageState.fetching && !pageState.error && !pageState.updating) {
@@ -46,6 +45,7 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
     return cleanup
   }, [listId, todolistsIO, newTodoRow, !pageState.fetching && !pageState.error && !pageState.updating])
 
+  const [removeTodos, setRemoveTodos] = useState<TodoRowId[]>([])
   useEffect(() => {
     let cleanup = () => { }
     if (removeTodos.length && !pageState.fetching && !pageState.error && !pageState.updating) {
@@ -63,6 +63,7 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
   }, [listId, todolistsIO, removeTodos.length, !pageState.fetching && !pageState.error && !pageState.updating])
 
 
+  const [todosFlagsToSet, setTodosFlagsToSet] = useState<{ rowIds: TodoRowId[], flag: boolean } | null>(null)
   useEffect(() => {
     let cleanup = () => { }
     if (todosFlagsToSet && !pageState.fetching && !pageState.error && !pageState.updating) {

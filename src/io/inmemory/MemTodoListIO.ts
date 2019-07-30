@@ -63,6 +63,17 @@ export default (cfg = {
       }
     },
 
+    removeList: (listId) => {
+      const todolist: TodoList | void = db[listId]
+      if (!todolist) {
+        return throwError('404')
+      } else {
+        delete db[listId]
+        save()
+        return fromWithDelayAndMaybeError(true)
+      }
+    },
+
     fetchTodoList: id => {
       const todolist: TodoList | void = db[id]
       return todolist ? fromWithDelayAndMaybeError(todolist) : throwError('404')

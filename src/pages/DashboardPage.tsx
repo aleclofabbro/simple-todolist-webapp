@@ -4,11 +4,13 @@ import { RouteComponentProps, Redirect } from 'react-router';
 import { Link } from 'react-router-dom';
 import { TodoListIOCtx } from '../ctx';
 import { TodoList, TodoListId } from '../types/Data';
+import { mergeMap } from 'rxjs/operators';
+import { Mask } from '../components/Mask';
 
 type PageState =
   | { fetching: true, error: false }
   | { fetching: false, error: true, msg: string }
-  | { fetching: false, error: false, lists: TodoList[] }
+  | { fetching: false, error: false, updating: boolean, lists: TodoList[] }
 
 
 const DashboardPage: React.FC<RouteComponentProps> = (_) => {
@@ -32,12 +34,31 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
   useEffect(() => {
     const sub = todolistsIO.fetchTodoLists()
       .subscribe(lists => {
-        setPageState({ fetching: false, error: false, lists })
+        setPageState({ fetching: false, error: false, updating: false, lists })
       }, err => {
         setPageState({ fetching: false, error: true, msg: String(err) })
       })
     return () => sub.unsubscribe()
   }, [])
+
+  const [listIdToRemove, setListIdToRemove] = useState<TodoListId | null>(null)
+  useEffect(() => {
+    let cleanup = () => { }
+    if (listIdToRemove && !pageState.fetching && !pageState.error && !pageState.updating) {
+      setListIdToRemove(null)
+      setPageState({ fetching: false, error: false, updating: true, lists: pageState.lists })
+      const sub = todolistsIO.removeList(listIdToRemove)
+        .pipe(
+          mergeMap(() => todolistsIO.fetchTodoLists())
+        ).subscribe(lists => {
+          setPageState({ fetching: false, error: false, updating: false, lists })
+        }, err => {
+          setPageState({ fetching: false, error: true, msg: String(err) })
+        })
+      cleanup = () => sub.unsubscribe
+    }
+    return cleanup
+  }, [listIdToRemove, todolistsIO, listIdToRemove, !pageState.fetching && !pageState.error && !pageState.updating])
 
 
   return (
@@ -54,7 +75,7 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
               <h1>Fetch Error: ${pageState.msg} </h1>
             </div>
 
-            : <>
+            : <div>
               <div>
                 <div className="row">
                   <div className="input-group mb-3">
@@ -65,11 +86,13 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
               <div className="row">
                 {
                   pageState.lists.map(todolist => <TodoListCard key={todolist.id} {...{
-                    todolist: todolist
+                    todolist: todolist,
+                    deleteList: () => setListIdToRemove(todolist.id)
                   }} />)
                 }
               </div>
-            </>
+              <Mask show={pageState.updating} />
+            </div>
       }
     </>
   );

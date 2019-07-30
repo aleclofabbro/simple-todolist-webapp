@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 
 export interface Props {
   todolist: TodoList,
-
+  deleteList: () => unknown
 }
 
-export const TodoListCard: React.FC<Props> = ({ todolist }) => {
+export const TodoListCard: React.FC<Props> = ({ todolist, deleteList }) => {
 
   return (
     <>
@@ -22,7 +22,7 @@ export const TodoListCard: React.FC<Props> = ({ todolist }) => {
           <p className="card-text">
             Done: {todolist.todos.filter(_ => _.done).length}
           </p>
-          <span style={{ cursor: 'pointer' }} className="float-right card-link">Delete</span>
+          <button onClick={deleteList} style={{ cursor: 'pointer' }} className="float-right card-link btn btn-sm btn-danger">Delete</button>
         </div>
       </div>
     </>
