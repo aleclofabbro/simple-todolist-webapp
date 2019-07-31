@@ -94,7 +94,7 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
               <h1>Fetch Error: ${pageState.errorMsg} </h1>
               <Link to="/dashboard">Back to Dashboard</Link>
             </div>
-            : <div style={{ position: "relative" }}>
+            : <>
               <TodoListPanel {...{
                 todoList: pageState.list,
                 addTodoRowToList: setNewTodoRow,
@@ -102,7 +102,7 @@ const TodoListPage: React.FC<RouteComponentProps<{ id: string }>> = ({ match }) 
                 setDoneFlags: (rowIds, flag) => setTodosFlagsToSet({ rowIds, flag })
               }} />
               <Mask show={pageState.updating} />
-            </div>
+            </>
       }
     </>
   );

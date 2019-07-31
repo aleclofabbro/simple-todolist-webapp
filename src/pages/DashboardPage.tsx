@@ -50,7 +50,10 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
           err => alert(String(err)),
           () => setTodolistToAdd(null)
         )
-      return () => sub.unsubscribe()
+      return () => {
+        setPageState({ ...pageState, updating: false })
+        sub.unsubscribe()
+      }
     }
     return
   },
@@ -87,28 +90,31 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
           ? <h2>Wait, Fetching todoLists</h2>
 
           : pageState.status === 2
-            ? <div>
-              <h1>Fetch Error: ${pageState.errorMsg} </h1>
-            </div>
-
-            : <div>
+            ? (
               <div>
+                <h1>Fetch Error: ${pageState.errorMsg} </h1>
+              </div>
+            )
+
+            : (
+              < >
                 <div className="row">
                   <div className="input-group mb-3">
                     <input type="text" className="form-control" placeholder="Add todo list" onKeyDown={addHandler} />
                   </div>
                 </div>
-              </div>
-              <div className="row">
-                {
-                  pageState.lists.map(todolist => <TodoListCard key={todolist.id} {...{
-                    todolist: todolist,
-                    deleteList: () => setListIdToRemove(todolist.id)
-                  }} />)
-                }
-              </div>
-              <Mask show={pageState.updating} />
-            </div>
+                <div className="row">
+                  {
+                    pageState.lists.map(todolist => <TodoListCard key={todolist.id} {...{
+                      todolist: todolist,
+                      deleteList: () => setListIdToRemove(todolist.id)
+                    }} />)
+                  }
+                </div>
+                <Mask show={pageState.updating} />
+              </>
+            )
+
       }
     </>
   );

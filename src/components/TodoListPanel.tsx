@@ -33,6 +33,7 @@ const TodoListPanel: React.FC<Props> = ({ addTodoRowToList, todoList, setDoneFla
       <div className="row">
 
         <div className="col-sm-12 offset-md-2 col-md-8 offset-lg-3 col-lg-6 ">
+          <h2 className="text-center">{todoList.name}</h2>
           <div className="row">
             <div className="col-12">
               <div className="input-group mb-3">

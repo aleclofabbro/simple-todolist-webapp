@@ -6,8 +6,12 @@ import { delay, tap } from 'rxjs/operators';
 
 const newId = () => Number(String(Math.random()).substr(2)).toString(36)
 export default (cfg = {
-  lag: 100,
-  max: 500,
+  lag: 50,
+  max: 200,
+  // lag: 0,
+  // max: 0,
+  // lag: 2000,
+  // max: 500,
   errPct: 0
 }): TodoListIO => {
   const ITEMID = 'TODOLISTS_DB'
