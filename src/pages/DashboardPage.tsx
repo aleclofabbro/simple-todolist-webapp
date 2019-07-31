@@ -5,12 +5,11 @@ import { Link } from 'react-router-dom';
 import { TodoListIOCtx } from '../ctx';
 import { TodoList, TodoListId } from '../types/Data';
 import { mergeMap } from 'rxjs/operators';
-import { Mask } from '../components/Mask';
 
 type PageState =
   | { status: 1 }
   | { status: 2, errorMsg: string }
-  | { status: 3, updating: boolean, lists: TodoList[] }
+  | { status: 3, lists: TodoList[] }
 
 
 const DashboardPage: React.FC<RouteComponentProps> = (_) => {
@@ -24,7 +23,7 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
   useEffect(() => {
     const sub = todolistsIO.fetchTodoLists()
       .subscribe(lists => {
-        setPageState({ status: 3, updating: false, lists })
+        setPageState({ status: 3, lists })
       }, err => {
         setPageState({ status: 2, errorMsg: String(err) })
       })
@@ -42,43 +41,34 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
   }
   const [todolistToAdd, setTodolistToAdd] = useState<string | null>(null)
   useEffect(() => {
-    if (pageState.status === 3 && !pageState.updating && todolistToAdd) {
-      setPageState({ ...pageState, updating: true })
+    if (pageState.status === 3 && todolistToAdd) {
       const sub = todolistsIO.addTodoList(todolistToAdd)
         .subscribe(
           newListId => setShouldRedirectId(newListId),
           err => alert(String(err)),
           () => setTodolistToAdd(null)
         )
-      return () => {
-        setPageState({ ...pageState, updating: false })
-        sub.unsubscribe()
-      }
+      return () => sub.unsubscribe()
     }
     return
-  },
-    // eslint-disable-next-line 
-    [todolistToAdd, todolistsIO])
+  }, [todolistToAdd, todolistsIO, pageState.status])
 
   const [listIdToRemove, setListIdToRemove] = useState<TodoListId | null>(null)
   useEffect(() => {
-    if (pageState.status === 3 && !pageState.updating && listIdToRemove) {
+    if (pageState.status === 3 && listIdToRemove) {
 
-      setPageState({ ...pageState, updating: true })
       const sub = todolistsIO.removeList(listIdToRemove)
         .pipe(
-          mergeMap(() => todolistsIO.fetchTodoLists())
+          mergeMap(todolistsIO.fetchTodoLists)
         ).subscribe(
-          lists => setPageState({ ...pageState, updating: false, lists }),
+          lists => setPageState({ status: 3, lists }),
           err => setPageState({ status: 2, errorMsg: String(err) }),
           () => setListIdToRemove(null)
         )
       return () => sub.unsubscribe()
     }
     return
-  },
-    // eslint-disable-next-line 
-    [listIdToRemove, todolistsIO])
+  }, [listIdToRemove, todolistsIO, pageState.status])
 
   return (
     <>
@@ -111,7 +101,6 @@ const DashboardPage: React.FC<RouteComponentProps> = (_) => {
                     }} />)
                   }
                 </div>
-                <Mask show={pageState.updating} />
               </>
             )
 

@@ -6,8 +6,9 @@ import { delay, tap } from 'rxjs/operators';
 
 const newId = () => Number(String(Math.random()).substr(2)).toString(36)
 export default (cfg = {
-  lag: 50,
-  max: 200,
+  lag: 200,
+  max: 500,
+  // max: 200,
   // lag: 0,
   // max: 0,
   // lag: 2000,

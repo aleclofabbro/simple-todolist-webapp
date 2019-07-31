@@ -1,5 +1,5 @@
-// import TodoListIO from './io/axios/AxiosTodoListIO'
 import MemTodoListIO from './io/inmemory/MemTodoListIO'
+// import AxiosTodoListIO from './io/axios/AxiosTodoListIO'
 import React, { useContext, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import App from './AppComponent';
@@ -7,7 +7,6 @@ import * as serviceWorker from './serviceWorker';
 import { __RouterContext } from 'react-router';
 import Axios from 'axios'
 import { BrowserRouter } from 'react-router-dom';
-// import { makeEmitter } from '@alec/simple-todolist-common/dist/helper/StrictEmitter';
 import { pageTitleByRouterCtx } from './helper/routes';
 import * as Ctxs from './ctx';
 
@@ -15,15 +14,14 @@ import * as Ctxs from './ctx';
 
 Axios.get('/config.json').then(
   _resp => {
-    // const emitter = makeEmitter<GlobalEvents>()
 
-    /* 
-    const baseURL = resp.data.api.baseUrl;
-    const axios = Axios.create({ baseURL })
-    const axiosTodolistsIO = TodoListIO(axios)
-    */
 
-    const memTodolistsIO = MemTodoListIO()
+    // const baseURL = _resp.data.api.baseUrl;
+    // const axios = Axios.create({ baseURL })
+    // const todolistsIO = AxiosTodoListIO(axios)
+
+
+    const todolistsIO = MemTodoListIO()
 
     const Main = () => {
       const routerCtx = useContext(__RouterContext)
@@ -35,7 +33,7 @@ Axios.get('/config.json').then(
       }, [routerCtx])
 
       return (
-        <Ctxs.TodoListIOCtx.Provider value={memTodolistsIO}>
+        <Ctxs.TodoListIOCtx.Provider value={todolistsIO}>
           <Ctxs.AppCtx.Provider value={{ title }}>
             <App />
           </Ctxs.AppCtx.Provider>
